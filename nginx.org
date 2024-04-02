@@ -1,0 +1,7 @@
+#+title: Nginx
+
+* 重读配置文件
+- kill -HUP worker进程编号
+  *执行后worker进程编号将发全变化*
+- kill -WINCH master进程编号
+  *关闭所有worker进程*

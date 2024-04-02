@@ -1,0 +1,63 @@
+:source %
+:h option-list
+:set all
+:help key-notation
+~ 大小写互换
+C-f 上一页
+C-b 下一页
+zf 折叠
+zfip
+== 排版
+{} paragraph
+
+命令行便用normal模式命令
+    VG 
+    :'<,'>normal @a
+多文件操作
+    buffer
+        :ls 
+        :b name 
+        :bn :bp :bfirst :blast
+        :b num
+    window
+        C-w s 
+        C-w v 
+        :sp :vs :vnew :new
+        C-w =
+        C-w_
+        c-w|
+    tab
+        C-w T 把当前窗口移到一个新标签页
+        :tabo[nly] 关闭所有其他标签页
+        :tabc[lose] 关闭当前标签页
+        :tabn num  gt num 切换到编号为num的标签页
+        :tabnew :tabe
+
+vim 粘贴缩进错乱
+    :set paste
+    :set nopaste
+
+register 
+    "bdd 删除当前到b中
+    "" 表示无名寄存器，默认，""p=p
+    "+ 系统剪贴板
+    "% 当前文件名
+    ". 上次插入的文本
+    :echo has('clipboard') 查看是否支持系统剪贴板
+    "+y 复制到系统剪贴板
+
+宏 q @
+
+补全 C-p/n
+路径补全 C-x C-f
+
+:r! echo %:p 插入文件名
+1,6 s/self//n 统计self个数
+:% s/\<aaa\>/bbb/g 
+S 删除一行并插入
+C-o 上个位置
+g_ 行尾非空白字符
+C-c ESC
+gi 回到上次编辑位置
+; , 下一个/上一个
+() sentence

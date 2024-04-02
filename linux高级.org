@@ -1,0 +1,1573 @@
+#+title: Linux高级
+
+* 内核升级
+1. download
+   #+begin_src shell
+   emerge --ask --update --deep --with-bdeps=y --newuse sys-kernel/gentoo-sources
+   eselect kernel set 1
+   eselect kernel list
+   cd /usr/src/linux
+   #+end_src
+2. copy
+   #+begin_src shell
+   cp /boot/config-3.14.14-gentoo /usr/src/linux/.config
+   zcat /proc/config.gz > /usr/src/linux/.config
+   #+end_src
+3. merge
+   #+begin_src shell
+   make oldconfig
+   #字符串“（NEW）”在该行结束时标记该选项是新的。左边的方括号中的字符串是可能的答案：“Y”是，“N”不是，“m”模块，或者“？”显示帮助。推荐(或者说是默认)答案是大写（“Y”）。帮助说明解释了选项或驱动程序。
+   #当外部内核模块被安装 (如 NVIDIA 或 ZFS)，在制作内核前可能需要运行 make modules_prepare ，在这里 有它的描述。在构建上述额外的模块之前，一些模块在内核构建之前不能被安装或准备好。
+   #+end_src
+4. compare
+   #+begin_src shell
+   #另外，内核提供了一个脚本，可以干净地比较两个配置文件，即使已经移动了文件中的选项。
+   /usr/src/linux/scripts/diffconfig .config.old .config
+   #+end_src
+5. compile
+   #+begin_src shell
+   make menuconfig
+   #根据系统可用的速度和内核数量，构建内核可能需要相当长的时间。如果已知系统中 CPU 核的数量，可以使用-jN (其中 N 是可用核的数量加1)选项来加速复杂的处理过程。例如，一个双核处理器包含两个逻辑核加一个(2 + 1)。确定可用核心数量的一个简单方法是运行 nproc 命令:
+   nproc
+   make -j13
+   #+end_src
+6. install
+   #+begin_src shell
+   make modules_install
+   make install
+   sudo genkernel --lvm --install initramfs
+   #包含内核模块的包可以使用@module-rebuild命令重新编译
+   sudo emerge --ask @module-rebuild
+   #+end_src
+* 内部命令
+** 查看
+#+begin_src shell
+#内部命令:包含在bash中,在内存中
+help bash
+#查看所有内部命令
+enable
+#搜索内部命令的外部命令
+type -a echo
+#+end_src
+** 禁用内部命令
+#+begin_src shell
+#禁用内部命令
+#help中echo前有星号,说明ehco被禁用
+enable -n echo
+#+end_src
+** whereis
+#+begin_src shell
+#查看命令文档路径
+whereis ls
+#查看全部缓存的命令
+hash
+#清楚缓存
+hash -r
+#清楚某条缓存
+hash -r hostname
+#+end_src
+** 命令优先级
+别名>内部>外部
+#+begin_src shell
+#取消别名功能
+\ls
+#+end_src
+* history
+- -c:清空
+  - -d offset 删除第offset个命令
+  - n 显示最近n条 (zsh为-n,如history -5)
+  - -a 追加本次会话新执行的命令列表至历史文件
+- HISTTIMEFORMAT="%F %T " 显示时间
+- !n, !-n
+  - !d 调用最近开头为d的命令
+  - !d:p 打印命令,不执行
+  - !?at 包含
+- !* 获取上个命令的全部参数
+  - ll !*
+  - ll !:1
+    - ll !^
+    - ll !$
+* 命令的帮助用法
+- 查看描述:whatis cal 等价于 man -f cal
+  #+begin_quote
+➜  ~ whatis cal
+ls: nothing appropriate.
+  #+end_quote
+  - sudo mandb
+- 查看用法
+  - 内部命令
+    - help history
+* 通配符
+- cd ~wang 去wang的家目录
+- ~- 前1个工件目录
+  - cat ~-/awk.org 访问上次工作目录的awk.org而不需要用-切换文件夹
+  - 相当于 cat $OLDPWD/awk.org
+- ? 任意一个字符
+  *ll ??????? 查找7个字符的文件*
+- * 任意多个字符
+  *星号不会匹配包含隐藏文件*
+- []
+  - ls [a-c].txt
+    - 会包含大写字母
+    - 顺序是小大小大
+      a-A-b-B-c 没有大写C
+    - 要包含全部大小写a,b,c 使用 *ls [a-C].txt*
+  - ls [C-E].txt
+    - C-d-D-e-E 没有小写c
+  - ls [a-Z].txt
+    匹配所有大小写字母
+  - 预定义的字符
+    - [:digit:]
+    - [:lower:]
+    - [:upper:]
+    - [:alpha:] 任意大小写字母
+    - [:alnum:] 任意数字或字母
+    - [:blank:] 水平空白字符
+    - [:space:] 水平或垂直空白字符
+    - [:punct:] 标点符号
+    - [:print:] 可打印字符
+    - [:cntrl:] 控制(非打印)字符
+    - [:graph:] 图形字符
+    - [:xdigit:] 十六进制字符
+  - [],[^]同正则
+  - 查看所有隐藏文件夹: ls -Ad .*
+    *点不是通配符*
+  - *不是所有命令都支持通配符*
+    touch file*.log
+  - 生成随机密码
+    - cat /dev/urandom 什么符号都有
+      - tr -dc "[:alnum:]" < /dev/urandom |head -c 12
+    - openssl rand -base64 12
+* 技巧
+- 查看文件的16进制
+  hexdump -C awk.org
+- bc十进制转二进制
+  #+begin_src shell
+bc
+obase=2
+4
+  #+end_src
+- 查看磁盘开头512个字节
+  sudo hexdump -C -n 512 /dev/nvme0n1p1
+- uname -r
+- 查看登录了几个用户:who
+- /etc/motd
+  登录成功的欢迎提示
+  - /etc/issue
+    登录前提示
+  - 查看当前shell以及可用shell
+    - echo $SHELL
+    - cat /etc/shells
+- 查看操作系统: cat /etc/os-release
+- 查看cpu
+  - lscpu
+  - cat /proc/cpuinfo
+- echo {000..10..2}
+- M-<num> l
+- 带颜色输出
+  - echo -e "\e[31mwelcome\e[0m"
+    - -e 支持\
+    - [31m 红色
+    - [0m 结束
+- CAPS或<>表示变化的数据
+- whereis 和 whatis 结合使用查看昌录和类别的关系
+- 自动挂载 autofs
+- cd ~wang 去wang的家目录
+- ~- 前1个工件目录
+  - cat ~-/awk.org 访问上次工作目录的awk.org而不需要用-切换文件夹
+  - 相当于 cat $OLDPWD/awk.org
+- 拷贝隐藏,非隐藏到目录
+  cp -av . /opt/
+- 创建 -f 文件
+  - touch ./-f
+  - rm ./-f
+- 查看从1970到今天经过的天数
+  - date |grep 1970
+  - echo `date +%s`/86400 |bc
+- 改密码
+  - echo name:password |chpasswd
+- 复制file1的acl权限给file2
+  getfacl file1 |setfacl --set-file=- file2
+- 结合多条命令输出: {uname -r;uname -m}
+- patch -b 备份
+- bash语法检查: bash -n
+  - 调试: bash -x
+- 特殊条件
+  - while : 同 while true
+- 查看网卡驱动文件
+  #+begin_src shell
+➜  ~ ethtool -i eth0
+driver: r8169
+➜  ~ modinfo -n r8169
+/lib/modules/5.15.88-gentoo-dist/kernel/drivers/net/ethernet/realtek/r8169.ko
+  #+end_src
+* 自带变量
+- echo $OLDPWD
+  上次离开的目录
+* 注意事项
+- windows和linux文本文件的差异
+  - 换行的表示
+    - linux: 0a LF \n
+    - windows: 0d 0a CRLF \r\n
+    - \r 回车
+    - \n 换行
+  - 转化: dos2unix
+- 编码转换:iconv
+  - iconv -l 查看支持转换的编码
+  - 将gb2312转换为utf8
+    - iconv -f GB2312 windows.txt -o windows1.txt
+      - -f from
+* 日期和时间
+- date 月 日 时 分 年.秒
+  date 122807002022.30
+- 查看硬件时间
+  sudo hwclock
+- hwclock
+  - -s, --hctosys 校正系统时间
+  - -w, --systohc 校正硬件时间
+- cal 日历
+  - cal 2022
+  - cal 1 2023
+  - cal 9 1752
+  - cal -y 显示今年
+* 开关机
+- halt 关机
+- shutdown +10 十分钟后
+- shutdown 08:00
+- shutdown -c
+- shutdown -r
+* 会话管理
+- screen
+  - 屏幕共享
+    - screen -S help 开启
+    - screen -ls 查看
+    - screen -x help 加入
+    - C-a,d 退出共享
+* 命令
+- echo
+  - -e 输出ASCII文字
+    - echo -e "\0127\0130"
+    - echo -e "\x61\x62"
+    - echo -e "\e[31mwelcome\e[0m"
+- install功能相当于cp,chmod,chown,chgrp等相关工具的集合
+  - 复制文件: install -m 640 -o f -g f test.sh Desktop/
+    - -m 权限 -o 所有者 -g 所属组
+  - 创建文件夹: install -m 700 -o f -g f -d testdir
+  - *默认是755,适合复制可执行程序*
+** expect
+  - 复制到远程
+    #+begin_src shell
+#!/usr/bin/expect
+spawn scp /etc/fstab 10.0.0.7:/data
+expect {
+    "yes/no" { send "yes\n";exp_continue }
+    "password" { send "xxxxxx\n" }
+}
+expect eof
+    #+end_src
+  - 远程登录主机
+    #+begin_src shell
+#!/usr/bin/expect
+spawn ssh 10.0.0.7
+expect {
+    "yes/no" { send "yes\n";exp_continue }
+    "password" { send "xxxxxx\n" }
+}
+interact
+    #+end_src
+  - expect使用变量
+    #+begin_src shell
+#!/usr/bin/expect
+set ip 10.0.0.7
+set user root
+set password xxxxxx
+set timeout 10
+spawn ssh $user@$ip
+expect {
+    "yes/no" { send "yes\n";exp_continue }
+    "password" { send "$password" }
+}
+interact
+    #+end_src
+  - expect位置参数
+    #+begin_src shell
+#!/usr/bin/expect
+set ip [lindex $argv 0]
+set user root [lindex $argv 1]
+set password xxxxxx [lindex $argv 2]
+set timeout 10
+spawn ssh $user@$ip
+expect {
+    "yes/no" { send "yes\n";exp_continue }
+    "password" { send "$password" }
+}
+interact
+    #+end_src
+  - expect执行多个命令: 远程登录并创建账号
+    #+begin_src shell
+#!/usr/bin/expect
+set ip [lindex $argv 0]
+set user root [lindex $argv 1]
+set password xxxxxx [lindex $argv 2]
+set timeout 10
+spawn ssh $user@$ip
+expect {
+    "yes/no" { send "yes\n";exp_continue }
+    "password" { send "$password" }
+}
+expect "]#" { send "useradd haha\n" }
+expect "]#" { send "echo xxxxxx |passwd --stdin haha\n" }
+send "exit\n"
+expect eof
+    #+end_src
+* 字符集和编码
+- 字符集
+  二进制的字符的对应关系,如Unicode
+- 编码
+  决定在磁盘上如何保存,如utf-8类似字体,
+  - *Unicode只是约定了那个二进制表示那个文字,没有约定在磁盘上如何保存,就像*
+- echo $LANG 查看语言和编码
+- utf-8,utf-16,utf-32
+  - utf-8
+    变长字符集,可能占1,2,3,4
+  - utf-16
+    要么占2个字节,要么占4个字节
+  - utf-32
+    固定占4个字节
+- 查看字符的16进制: echo "abc" | hexdump -C
+  - 查看汉字的16进制: echo "饕餮" | hexdump -C
+  - xxd
+  - od -t x1z
+  - 0a 表式换行
+- 查看ASCII表: man ascii
+- 输出8进制: echo -e "\0127\0130"
+  *\0代表后面为8进制,127后面是130因为8进制逢8进1*
+- 输出16进制: echo -e "\x57\x58"
+* date
+- date -d now
+- date -d yesterday
+- date -d tomorrow
+- date -d "-2 day"
+- date -d "100 day"
+- date -d @1672247243 +%F\ %T
+  秒->日期
+- date +%s
+- 查看前天是星期几
+  date -d "-2 day" +%w
+* man
+- man 5 fstab
+- 查询: man -k keyword
+- 所在目录: man -w ls
+- man -w 5 fstab
+* 文件
+- 文件类型: - d b c l p(pipe) s(socket)
+  - p s都是进程间的通信,不同在于p单向传输,s是双向传输
+- basename和dirname
+  #+begin_src shell
+➜  ~ dirname /etc/syslog-ng/syslog-ng.conf
+/etc/syslog-ng
+➜  ~ basename /etc/syslog-ng/syslog-ng.conf
+syslog-ng.conf
+  #+end_src
+- 每个文件都有3个时间
+  1. mtime: 文件修改时间
+  2. ctime(change time): 文件权限,所有者修改时间
+  3. atime(access time): 文件读取时间
+  4. 查看3个时间: stat ety.org
+- 查看文件类型: file /bin/ls
+* touch
+- 存在的文件刷新时间,不存在的文件创建
+- 在bash无法使用星号,在zsh会刷新当前文件夹全部文件时间(不会改变子文件夹)
+- 指定刷新某个时间
+  - -a 仅改变atime和ctime
+  - -m 仅改变mtime和ctime
+  - -c 如果文件不存在,则不予创建
+* cp
+- 格式
+  #+begin_quote
+cp [OPTION]... [-T] SOURCE DEST
+cp [OPTION]... SOURCE... DIRECTORY
+cp [OPTION]... -t DIRECTORY SOURCE...
+  #+end_quote
+- *cp会导致时间,所有者发生改变*
+  - *默认会覆盖文件,不拷贝链接而拷贝原文件*
+- 常用选项
+  - -p (--preserve) 保留属性
+    - same as --preserve=mode,ownership,timestamps
+  - -R, -r, --recursive 递归拷贝,拷贝文件夹
+  - -d --no-dereference --preserve=links
+    不寻找原文件
+  - -a, --archive 常用于备份
+    - same as -dR --preserve=all
+  - -f, --force 覆盖不属于该用户的文件
+    #+begin_quote
+if an existing destination file cannot be opened, remove it and try again
+    #+end_quote
+    - *在非root帐户家目录,可以删除root的文件*
+  - -u, --update 只有当 SOURCE 文件比目标文件新或者当目标文件丢失时才复制
+    #+begin_quote
+copy only when the SOURCE file is newer than the destination file or when the destination file is missing
+    #+end_quote
+  - -b 目标存有,覆盖前先备份
+    后缀 *~*
+  - --backup=numbered
+    后缀 *~1~*
+  - -i, --interactive 覆盖前提示
+  - -v, --verbose
+  - -n, --no-clobber 不覆盖
+* ls
+1. 时间排序
+   - 默认 mtime (文件修改时间)
+     ll -t
+   - ll -t --time=ctime
+   - ll -t --time=atime
+2. 大小排序
+   - ll -S
+* rename 批量修改文件名
+- rename "conf" "conf.bak" *
+  为所有的conf文件加上.bak后缀
+- rename ".bak" "" *.bak
+* 删除所有隐藏文件
+- rm -rf .[^.]*
+- 拷贝隐藏,非隐藏到目录
+  cp -av . /opt/
+- 删除隐藏,非隐藏
+  rm -rf * .[^.]*
+- 粉碎文件
+  shred -zvun 5 password.txt
+* 硬盘数据的组成
+- 元数据 存放在节点表中
+  - inode(节点号)
+    - df -i
+  - 文件类型
+  - 权限
+  - UID 所有者
+  - GID 所属组
+  - 链接数
+  - 文件大小和时间戳
+  - 指向磁盘文件的数据块指针
+    - 直接指针
+      - 直接指向数据具体位置
+      - 每个指向4k的数据块
+      - 总共12个
+      - *只能存储48k的数据,超过使用间接指针*
+    - 间接指针
+      - 指向指针,总大小4k,每个指针4字节,共1024个,每个指向4k数据块
+      - 1级指针可以存4m数据
+  - 数据本身
+- 如何访问文件
+  - 文件和文件夹的元数据都在节点表中
+  - 先找到是那块磁盘,从挂载点依次向下
+- 硬链接
+  - 本质是同1个文件,取了2个名
+  - 磁盘真正占的空间只是1个的空间,只是在多个目录中引用了同1个节点号
+  - 因为硬链接的文件具有相同的节点号,是同1个文件,所以不能跨分区
+* IO
+- proc 进程
+  - /proc/PID/fd/3 指向文件路径
+    /proc/PID/fd/[0,1,2] 指向标准输出输入终端
+  - echo $$(查看当前shell的PID)
+    - cd /proc/$$/fd
+- echo默认换行
+  - 清空1个文件: echo -n > file
+- 合并多个命令的标准输出
+  - (ls;date) > file
+  - {ls;date} > file
+- 管道符后面的命令心须支持标准输入
+- 管道符默认只支持标准输出,不支持标准错误
+  - ls . /err | tr "a-z" "A-Z"
+  - ls . /err 2>&1 | tr "a-z" "A-Z"
+  - ls . /err |& tr "a-z" "A-Z"
+- 重定向
+  - 单行重定向
+    cat > cat.log
+  - 多行重定向
+    #+begin_src shell
+cat > cat.log <<EOF
+EOF
+    #+end_src
+    - *多行重定向可以嵌入命令*
+  - PS2影响多行重定向提示符
+- tr
+  - tr "123" "abc"
+    - 1 -> a
+    - 2 -> b
+    - 3 -> c
+  - tr -d abc
+    删除字母a,b,c
+  - tr -s (--squeeze-repeats)
+    去重
+  - tr -c (-C --complement)
+    取补集
+  - 产生随机字符
+    - cat /dev/urandom 什么符号都有
+      - tr -dc "[:alnum:]" < /dev/urandom
+    - openssl rand -base64 12
+* 发邮件
+- install postfix 邮件服务
+- install mailx
+- enable postfix
+- mail -s subject name
+- mail -s subject name < mail.txt
+- 反转: echo "FBI Warning" | rev
+* tee
+- | tee
+- | tee -a
+- cat <<EOF | tee .mailrc
+* 用户和组
+** passwd,shaow,group,gshadow
+- sudo getent shadow root
+- getent passwd root
+** useradd
+- -r 创建系统用户
+** 新建用户的相关文件
+- /etc/default/useradd
+- /etc/skel/*
+- /etc/login.defs
+- 批量创建用户
+  - newusers passwd格式文件
+- 批量改密码
+  - echo name:password |chpasswd
+  - cat p.txt |chpasswd
+** 组
+- 查看用户所有的组: groups f
+- 查看组的成员: groupmems -l -g video
+** 权限
+- chmod -R a+X dir
+  给目录加上可执行权限,但不影响文件
+* 文本
+** vim
+- 匹配行
+  - . 当前行
+  - 2,+5
+  - $
+- set fileformat=[dos,unix]
+  - set ff
+- set textwidth=65
+- xp
+- c-w s
+- c-w v
+- c-w q
+- c-w a
+- ma `a`
+** cat
+- -A -E
+- -n -b 非空行编号
+** tac
+** rev
+** nl
+同cat -b
+** tail -[fn0,0f] 跟踪文件描述符
+- tail -F 跟踪文件名
+** cut
+- cut -d: -f1,3-5 /etc/passwd
+  1,3,4,5
+- df|tr -s " " "%"|cut -d% -f5
+** paste
+- paste 两个文件横向合并
+- paste -s -d:
+** wc
+- 过滤第1行
+  df|tail -n $(echo $(df|wc -l)-1|bc)
+** sort
+- sort -nt: -k3 /etc/passwd
+- sort -nrt: -k3 /etc/passwd 倒序
+** uniq 删除前后相邻的重复行
+- -c
+- -d 仅显示重复的行
+- -u 仅显示不曾重复的行
+** 查看连接的ip: ss -nt
+- ss -nt|tail -n+2
+  去掉第1行
+- ss -nt|tail -n+2|tr -s " " :|cut -d: -f6 |sort |uniq -c |sort -nr
+- ss -nt |sed -En '/^ESTAB/s#.*[: ]([^:]+[0-9]):[0-9]+#\1#p' |sort |uniq -c |sort -nr
+** 比较二进制
+- cmp /bin/{dir,ls}
+- hexdump -s 144640 -Cn 7 /bin/ls
+- hexdump -s 144640 -Cn 7 /bin/dir
+** grep
+*** grep -m1 root /etc/passwd
+匹配1次停止
+*** 或: grep -e root -e bash /etc/passwd
+*** 并: grep | grep
+*** grep -w 包含完整单词
+** man 7 regex
+- 排除空行和#开头的行
+  - grep -v "^;" /etc/php/cli-php8.1/php.ini |grep -v ^$
+  - grep -v "^;\|^$" /etc/php/cli-php8.1/php.ini
+  - grep -v "^\(;\|$\)" /etc/php/cli-php8.1/php.ini
+  - grep "^[^;]" /etc/php/cli-php8.1/php.ini
+- grep "^\(.*\)\>.*\<\1$" /etc/passwd
+  - ^\(.*\) 匹配1个单词
+  - \<\1$ 以前1个单词结尾
+* shell脚本
+- bash语法检查: bash -n
+  - 调试: bash -x
+- 脚本错误常见的有3种
+  - 语法错误,会导致后续的命令不继续执行,可以用bash -n检查错误
+  - 命令错误,后续的命令还会继续执行,用bash -n无法检查出来,可以使用bash -x进行观察
+  - 逻辑错误,只能使用bash -x进行观察
+- $- 变量(bash有效)
+  - h: 打开选项后.shell会将命令所在的路径hash下来.通过set +h将h选项关闭
+  - i: 当前shell是一个交互式的shell.在脚本中,i选项是关闭的
+  - m: monitor,打开监控模式,就可以通过Job control来控制进程的停止,继续,后台或者前台执行等
+  - B: braceexpand,大括号扩展
+  - H: 可以通过!感叹号来调用历史命令
+- set
+  - set -o 查看选项
+  - set -o errexit on 防止命令错误继续执行
+    - help set
+    - 同set -e
+      遇到$?不为0就退出
+    - true,echo $?永远为真
+    - false,echo $?永远为假
+  - set -u 防止使用未定义的变量
+    - 同set -o nounset
+  - set -ue
+  - set -x 当执行命令时,打印命令及其参数,类似bash -x
+  - shift
+    #+begin_src shell
+#!/bin/bash
+PASS=evil520
+while [ "$1" ];do
+      useradd $1 && echo $1 is created || echo $1 is exist
+      echo $PASS | passwd --stdin $1 &> /dev/null
+      shift
+done
+    #+end_src
+- while read
+  #+begin_src shell
+WARNING=100
+ss -nt |sed -En '/^ESTAB/s#.*[: ]([^:]+[0-9]):[0-9]+#\1#p' |sort |uniq -c |while read count ip;do
+    if [ $count -gt $WARNING ];then
+       iptables -A INPUT -s $ip -j REJECT
+    fi
+done
+  #+end_src
+- select循环与菜单
+  - select与if语法一样
+    - help select
+    - select variable in list; do  done
+  - 用户输入的变量放入REPLY中
+  - example
+    #+begin_src shell
+PS3="请输入菜的编号"
+select MENU in 鲍鱼 满汉全席 龙虾 燕窝 帝王蟹 退出;do
+               case $REPLY in
+                   1|3) echo "$MENU price is \$10"
+                       ;;
+                   2) echo "$MENU price is \$1000"
+                       ;;
+                   4|5) echo "$MENU price is \$20"
+                        ;;
+                   6) break
+                      ;;
+                   ,*) echo "点错了,没有这道菜"
+                esac
+done
+    #+end_src
+
+    #+RESULTS:
+- 信号捕捉
+  - 查看: man 7 signal
+  - 定义信号触发器: trap 'echo "Press ctrl+c"' int quit
+    - 当触发2,3信号打印
+    - trap '' int
+      当触发2信号什么也不做
+    - trap '-' int
+      还原2信号的功能
+    - trap 函数名 exit
+      退出时要执行的函数
+* printf
+- printf
+  - 格式: printf "指定的格式" "文本1" "文本2"
+    #+begin_src shell
+➜  ~ printf "%s\n" "1 2 3 4"
+1 2 3 4
+➜  ~ printf "%s %s\n" 1 2 3 4
+1 2
+3 4
+    #+end_src
+  - 表格
+    - printf "%-10s %-10s %-4s %s \n" 姓名 性别 年龄 体重 小明 男 20 70  小红 女 18 50
+* test
+- 选项
+  - -v 判断变量是否定义,无法判断是否为空
+  - -R 判断变量是否定义,或者为空
+  - -L 判断文件是否为软链接
+    [ -L /lib ]
+  - -a -e 判断文件是否存有
+- []
+  - 在比较字符串时,建议放在""中
+  - [ "$string" ] 字符串是否不空
+- [[]]
+  - 建议,当使用正则表达式或通配符使用,一般情况使用[]
+  - 与[]的区别
+    - 比较字符串用 == 支持通配符
+    - 可以用正则表达式 =~
+  - 结论
+    #+begin_src shell
+[[ == ]]: ==右侧的*,想做为通配符,不要加"",只想做为*,需要加""或转义
+    #+end_src
+* {} 执行1组命令,不开启子进程
+- {}最后1个命令要加分号,花括号后面必须有空格
+- name=evil520;{ echo $name;name=tang;echo $name; };echo $name
+- |后面的命令会开启子进程
+  #+begin_src shell
+➜  ~ echo evil520 |read X;echo $X
+evil520
+➜  ~ bash
+f@gentoo ~ $ echo evil520 |read X;echo $X
+
+f@gentoo ~ $ echo evil520 | { read X;echo $X; }
+evil520
+  #+end_src
+  - zsh中管道不会开启子进程
+* case in
+- yes,no脚本
+    #+begin_src shell
+    read -p "Do you agree(yes/no)?" INPUT
+    case $INPUT in
+    [Yy]|[Yy][Ee][Ss])
+        echo "You input is YES"
+        ;;
+    [Nn]|[Nn][On])
+        echo "You input is NO"
+        ;;
+    ,*)
+        echo "Input false,please input yes or no!"
+    esac
+    #+end_src
+* locate find
+- locate
+  1. 下载: vj mlocate
+  2. updatedb
+     #+begin_quote
+➜  ~ locate passwd
+locate: can not stat () `/var/lib/mlocate/mlocate.db': No such file or directory
+     #+end_quote
+  3. 选项
+     - -i 不区分大小写
+     - -n 只列举前n个项目
+     - -r 使用基本正则表达式
+       - locate -r "\.conf$"
+         使用正则匹配以.conf结尾的文件
+  4. locate conf 匹配包含conf的文件
+     *区配规则是模糊匹配*
+* find
+*通配符要加双引号*
+** 查找
+1. 指定搜索目录层级
+   - -maxdepth -mindepth
+     - find /etc/ -maxdepth 2 -mindepth 2
+2. 对每个目录先处理目录内的文件,再处理目录本身
+   - -depth -d
+3. 根据文件名和inode查找
+   - -name
+   - -iname 不区分大小写
+     - find / -inum 256 -ls
+   - -inum 按inode号查找
+   - -samefile 相同inode的文件
+   - -links 链接数为n的文件
+   - -regex 匹配整个文件路径,而非文件名称
+     - find / -regex ".*\.jpg$"
+4. find / -nouser 查看没有所有者的文件
+5. 根据文件类型查找
+   - type [bcdfpsl]
+6. 查找空文件或目录
+   - find / -type d -empty -ls
+   - find / -type f -empty -ls
+7. 组合条件 -a -o -not !
+   - 默认取两结果的并集: find / -type d -empty -ls
+     同find / -type d -a -empty -ls
+   - -o和-ls一起使用发生的问题
+       #+begin_src shell
+   ➜  ~ s find /etc/ -type d -o -type l -ls |wc -l
+   372
+   ➜  ~ s find /etc/ -type d -o -type l |wc -l
+   532
+   ➜  ~ s find /etc/ \( -type d -o -type l \) -ls |wc -l
+   532
+       #+end_src
+     - s find /etc/ \( -type d -o -type l \) -ls |wc -l
+       - 同s find /etc/ \( -type d -o -type l \) -a -ls |wc -l
+       - *-o或,-a并,或的优先级不如并且的优先级高*
+8. find /etc ! -name "*.conf"
+9. 排除目录 \( -path "/sys" -o -path "/proc" \) -a -prune -o
+   - find / \( -path "/sys" -o -path "/proc" \) -a -prune -o -type f -a -mmin -1
+10. 根据文件大小来查找
+    - -size [+,-]6k
+      - 6k (5k,6k]
+      - -6k (0,5k]
+      - +6k (6k,]
+11. 根据时间戳
+    - -[a,m,c]time [+,-]# 以天为单位
+      - # [#,#+1]
+      - +# [#+1,]
+      - -# [0,#)
+    - [a,m,c]min [+,-]# 以分钟为单位
+*** 根据权限查找
+  - -perm [/,-]
+    1. 什么都不加,精确匹配
+       - find /etc -perm 600
+         *权限必须是600*
+    2. /,- 模糊匹配
+       - /:或 -:并
+         1. find /etc/ -perm /444
+           *只要有一个有读权限就可以*
+         2. find /etc/ -perm -444
+            *三个都得有读权限*
+         3. find /etc/ -perm -044
+            *0表示不关心*
+         4. find / -perm [-,/]002 *同*
+            - find /bin/ -perm [/,-]7000 -ls *不同*
+            - *find /bin/ -perm /7000 -ls* 只要1位有特殊权限就行
+         5. find / \( -path "/sys" -o -path "/proc" \) -a -prune -o -perm /002 -a -type f
+            查看其他人有没有写的权限
+** 处理动作
+- -print 默认的处理动作
+- -ls
+- -fls 将查找到的所有文件的长格式信息保存至指定文件中
+  同-ls加重定向
+- -delete *慎用*
+- -ok -exec 区别在于-ok会有交互
+  - find -maxdepth 1 -type f -perm 644 -name "*.sh" -exec chmod 755 {} \;
+    *给当前目录的.sh文件加上可执行权限*
+  - find -maxdepth 1 -type f -perm 755 -name "*.sh" -exec rm {} \;
+    *调用的rm不是别名,慎用*
+  - find -maxdepth 1 -type f -perm 755 -name "*.sh" -ok rm {} \;
+    *会有提示,输入y删除*
+* xargs 将输入传给下一个命令,作为其的参数
+1. seq 10 |xargs 多行变1行
+   - echo {1..10} |xargs -n1 1行变多g行
+     #+begin_src shell
+➜  ~ seq 10
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+➜  ~ seq 10 |xargs
+1 2 3 4 5 6 7 8 9 10
+➜  ~ echo {1..10}
+1 2 3 4 5 6 7 8 9 10
+➜  ~ echo {1..10} |xargs -n1
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+     #+end_src
+2. 批量创建用户: echo user{1..10} |xargs -n1 useradd
+   - echo user{1..10} |xargs -n1 userdel -r
+   - getent passwd
+3. 并行下载视频
+   seq 100 |xargs -i -p3 you-get https:~?p={}
+** 结合ls
+1. find -maxdepth 1 -type f |xargs ls -Slh
+   - find -maxdepth 1 -type f -exec ls -Slh {} \; 不是那么好用
+2. 当文件存有空格
+   #+begin_src shell
+➜  ~ touch "a b"
+➜  ~ find -maxdepth 1 -type f |xargs ls -Slh
+ls: cannot access './a': No such file or directory
+ls: cannot access 'b': No such file or directory
+   #+end_src
+   - 因为xargs默认以空格作为分隔符
+   - 解决方法: 以空(nul)作为分隔符
+     #+begin_src shell
+➜  ~ find -maxdepth 1 -type f -print0 | xargs -0 ls -Slh
+-rw-r--r-- 1 f    f       0 Jan 10 15:37 './a b'
+     #+end_src
+     - -0 代表空
+* 压缩
+** 对文件
+*** compress
+-
+  1. 安装ncompress
+     #+begin_src shell
+➜  ~ ll emerge.txt
+-rw-r--r-- 1 f f 50K Dec 29 22:05 emerge.txt
+➜  ~ compress emerge.txt
+➜  ~ ll emerge.txt.Z
+-rw-r--r-- 1 f f 20K Dec 29 22:05 emerge.txt.Z
+     #+end_src
+  2. gentoo没有 *uncompress* 命令
+     - compress -d emerge.txt.Z
+     - 可选: zcat emerge.txt.Z > emerge.txt
+  3. 选项
+     - -c 结果输出至标准输出,不删除原文件
+       #+begin_src shell
+compress -c emerge.txt > emerge.txt.Z
+compress -dc emerge.txt.Z > emerge2.txt
+       #+end_src
+     - -v 显示详情
+  4. 文件预览: zcat emerge.txt.Z
+*** gzip,gunzip
+- gzip emerge.txt
+- gunzip emerge.txt.gz
+- 比较gzip和compress
+  #+begin_src shell
+➜  ~ ll emerge*
+-rw-r--r-- 1 f f 50K Jan 10 16:26 emerge2.txt
+-rw-r--r-- 1 f f 14K Dec 29 22:05 emerge.txt.gz
+-rw-r--r-- 1 f f 20K Jan 10 16:28 emerge.txt.Z
+  #+end_src
+- 最高压缩比压缩
+  #+begin_src shell
+➜  ~ gzip -9 emerge.txt
+➜  ~ ll emerge*
+-rw-r--r-- 1 f f 50K Jan 10 16:26 emerge2.txt
+-rw-r--r-- 1 f f 14K Dec 29 22:05 emerge.txt.gz
+-rw-r--r-- 1 f f 20K Jan 10 16:28 emerge.txt.Z
+  #+end_src
+- *对命令的输出进行压缩* : cat emerge.txt |gzip > emerge.txt.gz
+*** bzip2,bunzip2
+- 选项 -k 保留原文件
+- 比较
+  #+begin_src shell
+➜  ~ bzip2 emerge.txt
+➜  ~ ll emerge*
+-rw-r--r-- 1 f f 50K Jan 10 16:26 emerge2.txt
+-rw-r--r-- 1 f f 12K Dec 29 22:05 emerge.txt.bz2
+-rw-r--r-- 1 f f 14K Jan 10 16:40 emerge.txt.gz
+-rw-r--r-- 1 f f 20K Jan 10 16:28 emerge.txt.Z
+  #+end_src
+- 预览: *bzcat* emerge.txt.bz2
+*** xz,unxz
+- 比较
+  #+begin_src shell
+➜  ~ xz -k emerge.txt
+➜  ~ ll emerge*
+-rw-r--r-- 1 f f 50K Jan 10 16:26 emerge2.txt
+-rw-r--r-- 1 f f 50K Dec 29 22:05 emerge.txt
+-rw-r--r-- 1 f f 12K Dec 29 22:05 emerge.txt.bz2
+-rw-r--r-- 1 f f 14K Jan 10 16:40 emerge.txt.gz
+-rw-r--r-- 1 f f 13K Dec 29 22:05 emerge.txt.xz
+-rw-r--r-- 1 f f 20K Jan 10 16:28 emerge.txt.Z
+  #+end_src
+- 预览: xzcat emerge.txt.xz
+** 文件夹
+*** zip,unzip *可能丢失文件属性信息,一般建议使用tar*
+- zip -r target.zip source
+- *指定目录解包,默认解压到当前目录*: unzip target.zip -d /
+- *不包含目录本身,只打包目录内的文件和子目录*: zip -r ~.zip *
+- 比较
+  #+begin_src shell
+➜  ~ zip emerge.txt.zip emerge.txt
+  adding: emerge.txt (deflated 72%)
+➜  ~ ll emerge*
+-rw-r--r-- 1 f f 50K Jan 10 16:26 emerge2.txt
+-rw-r--r-- 1 f f 50K Dec 29 22:05 emerge.txt
+-rw-r--r-- 1 f f 12K Dec 29 22:05 emerge.txt.bz2
+-rw-r--r-- 1 f f 14K Jan 10 16:40 emerge.txt.gz
+-rw-r--r-- 1 f f 13K Dec 29 22:05 emerge.txt.xz
+-rw-r--r-- 1 f f 20K Jan 10 16:28 emerge.txt.Z
+-rw-r--r-- 1 f f 14K Jan 10 17:16 emerge.txt.zip
+
+➜  blog git:(master) ✗ unzip ../emerge.txt.zip
+Archive:  ../emerge.txt.zip
+  inflating: emerge.txt
+  #+end_src
+*** tar(Tape ARchive)
+1. c: 打包 t: 预览 x: 解包
+2. 打包
+   - tar cf target.tar sourcce
+3. 解包
+   - 指定目录: tar xf emerge.txt.tar -C Pictures
+4. 打包并压缩
+   - zcf gz
+   - jcf bz2
+   - Jcf xz
+5. 选项
+   - -p 保留属性
+     *无法保留acl权限,acl权限需要单独备份*
+   - --exclude
+   - -T 要打包的文件 -X不打包的文件
+     - tar zcvf mybackup.tgz -T /root/incledefilelist -X /root/excludefilelist
+6. 快速文件复制: tar c /var |tar x -C /data/
+*** 查看linux源代码行数
+1. tar xvf linux.tar.xz
+2. du -sh linux
+3. cat `find -name "*.c"` |wc -l
+*** split
+- 切割图片
+  #+begin_src shell
+➜  Pictures split -b 10K 1048px-Heckert_GNU_white.svg.png pic
+➜  Pictures ls
+1048px-Heckert_GNU_white.svg.png  picab  picad  picaf  picah
+picaa                             picac  picae  picag  picai
+  #+end_src
+  - -d 以数字为单位
+  - 合并图片
+    #+begin_src shell
+➜  Pictures cat pic*> pic.png
+➜  Pictures ll
+total 268K
+-rw-r--r-- 1 f f  83K Jan  9 13:48 1048px-Heckert_GNU_white.svg.png
+-rw-r--r-- 1 f f  10K Jan 10 23:08 picaa
+-rw-r--r-- 1 f f  10K Jan 10 23:08 picab
+-rw-r--r-- 1 f f  10K Jan 10 23:08 picac
+-rw-r--r-- 1 f f  10K Jan 10 23:08 picad
+-rw-r--r-- 1 f f  10K Jan 10 23:08 picae
+-rw-r--r-- 1 f f  10K Jan 10 23:08 picaf
+-rw-r--r-- 1 f f  10K Jan 10 23:08 picag
+-rw-r--r-- 1 f f  10K Jan 10 23:08 picah
+-rw-r--r-- 1 f f 2.4K Jan 10 23:08 picai
+-rw-r--r-- 1 f f  83K Jan 10 23:10 pic.png
+    #+end_src
+*** cpio
+- 打包: find ./etc | cpio -ov > etc2.cpio
+- 预览: cpio -tv < etc.cpio
+- 解包: cpio -idv < /data/etc2.cpio
+* 软件包
+** 动态链接: 程序运行时会调用
+- 静态链接: 把程序对应的信赖库复制一份到包
+- 查询信赖库: ldd /bin/cat
+- 查询已经加载的库: ldconfig -p
+** rpm
+- 利用cpio工具查看文件列表
+  - rpm2cpio bash-4.4.rpm | cpio -idv
+- rpm -[i,e] 安装,卸载 v 显示详细过程 h 安装进度
+- rpm -q ncompress 查询包是否存在
+- rpm -qa *查询安装的所有包*
+  - *模糊查询*: rpm -qa |grep http
+  - 可选: rpm -qa "*http*​"
+- *不带p的查询已安装的包*
+  - rpm -qi tree 查询已安装包的信息
+  - rpm -ql tree 列出包包含的文件及放入的文件夹
+- *带p的查询本地的包文件*
+  - rpm -qpi rpm包文件 查询 *文件* 中包的信息
+  - rpm -qpl rpm包文件 列出包包含的文件及放入的文件夹
+- *查询磁盘上的文件来自于哪个包*: rpm -qf /usr/bin/tree
+- *查询哪个包提供了bash命令*: rpm -q --whatprovides bash
+- *查询bash命令信赖于哪些包*: rpm -q --whatrequires bash
+- 查询配置文件: rpm -qc bash
+- 查询程序的文档: rpm -qd bash
+- 查询更新日志: rpm -q --changelog bash
+- 查询包携带的脚本: rpm -q --scripts bash
+  - rpm -q --scripts httpd
+*** 密钥
+- 查询包的密钥: rpm -K|--checksig rpmfile
+- 导入: rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+- 查询安装好的密钥: rpm -qa "gpg-pubkey*"
+- 查询密钥的详细信息: rpm -qi gpg~
+- 校验包是否发生改变: rpm -v 包名
+** yum
+- yum localinstall zabbix-server-mysql-4.4.7-1.el7.x86_64.rpm
+- 列出仓库名: yum repolist [all,disable,enable]
+- yum list available 列出未安装
+- *临时启/禁用仓库*: yum --enablerepo=ep* repolist
+- *查询命令,文件来自于哪个包哪个仓库*: yum [provides,whatprovides]
+  - 查询命令来自于哪个包哪个仓库: yum [provides,whatprovides] yum-config-manager
+  - *查询文件来自于哪个包哪个仓库*: yum [provides,whatprovides] /etc/vsftpd/vsftpd.conf
+- *永久启/禁用仓库*: yum-config-manager --disable epel
+- 显示所有版本: yum [info,list] --showduplicates
+- *安装时禁用某个仓库*: yum install samba --disablerepo=updates
+- *查看依赖的包*: yum deplist httpd
+*** yum历史
+- yum history
+- yum history info 22
+- yum history undo 22 -y
+- yum history redo 22 -y
+*** 系统救援
+- 安装软件到/mnt/sysimage目录
+  - rpm -ivh /mnt/cdrom/Packages/rpm-4.11.3-40.e17.x86_64.rpm --root=/mnt/sysimage/
+    #+begin_src shell
+# 卸载rpm
+rpm -e rpm --nodeps
+# 重启进入rescue模式
+mkdir /mnt/cdrom
+mount /dev/sr0 /mnt/cdrom
+rpm -ivh /mnt/cdrom/Packages/rpm-4.11.3-40.e17.x86_64.rpm --root=/mnt/sysimage/
+    #+end_src
+*** 清理缓存
+- 文件夹
+  - /var/lib/rpm *包的元数据: 已安装包的信息*
+  - /var/cache/yum/* *缓存文件夹*
+- 查询: du -sh /var/cache/yum/x86_64/7/*
+  - s du -sh /var/db/*
+- 清理
+  - yum clean all
+    *在配置文件存有时*
+*** yum和dnf失败最主要原因
+1. yum的配置文件格式或路径错误
+2. yum cache
+3. 网络不通
+*** 实现私用yum仓库
+**** 光盘
+1. yum -y install httpd
+2. mkdir /var/www/html/centos/8 -pv
+3. mount /dev/sr0 /mnt/
+4. cp -a /mnt/* /var/www/html/centos/8
+5. systemctl enable --now httpd
+**** 网络
+***** 下载阿里云的extras源,制作私有yum源
+1. dnf reposync --repoid=extras --download-metadate -p /var/www/html/centos/extras/
+*** dpkg包管理器
+- 列出已安装的包: dpkg -l
+  rpm -qa
+- 显示该包的描述: dpkg -l package
+- 详细信息: dpkg -s package
+  rpm -qi
+- 包含文件: dpkg -L package
+  rpm -ql
+- 某个文件来自哪个包: dpkg -S /~
+  rpm -qf
+- 列出deb包的内容: dpkg -c package.deb
+  rpm -qpl
+- 解包: dpkg --unpack package.deb
+* sed
+- 忽略大小写: sed -n "/ROOT/Ip"
+- 取反: sed -n "/root/!p"
+  sed "/root/d"
+- 修改并备份: sed -i.orig "/root/d"
+- 替换: sed -i.bak "/^SELINUX=disabled/c SELINUX=enforcing" /etc/selinux/config
+** 搜索替换
+- sed -Ei.bak "s/^(SELINUX=).*/\1enforcing/" /etc/selinux/config
+- grub
+  - sed -Ei.bak '/^GRUB_CMDLINE_LINUX/s/(.*)"$/\1 net.ifnames=0' /etc/default/grub
+  - sed -nr '/^GRUB_CMDLINE/s/"$/ net.ifnames=0"/p' /etc/default/grub
+- ip
+  - ifconfig wlan0 |sed -rn '2s/^[^0-9]+([0-9.]+) .*$/\1/p'
+- #
+  - sed -Ei.bak '/^#/!s/^/#/' /etc/fstab
+* 磁盘
+** 前言
+- 创建设备文件
+  #+begin_src shell
+➜  ~ ll /dev/nvme0n1p1
+brw-rw---- 1 root disk 259, 1 Jan 15 19:57 /dev/nvme0n1p1
+➜  ~ s mknod nvme1 b 259 1
+➜  ~ ll nvme1
+brw-r--r-- 1 root root 259, 1 Jan 15 22:27 nvme1
+➜  ~ s mount nvme1 /mnt
+➜  ~ ll /mnt
+total 8.0K
+drwxr-xr-x 6 root root 4.0K Nov  1 06:43  EFI
+drwxr-xr-x 2 root root 4.0K Jan 12 13:24 'System Volume Information'
+  #+end_src
+  - 创建zero
+    #+begin_src shell
+➜  ~ ll /dev/zero
+crw-rw-rw- 1 root root 1, 5 Jan 15 19:57 /dev/zero
+➜  ~ s mknod zero c 1 5
+➜  ~ ll zero
+crw-r--r-- 1 root root 1, 5 Jan 15 22:35 zero
+    #+end_src
+- 测试写硬盘速度
+  #+begin_src shell
+➜  ~ s dd if=/dev/zero of=f1.img bs=1M count=1024 conv=fdatasync
+1024+0 records in
+1024+0 records out
+1073741824 bytes (1.1 GB, 1.0 GiB) copied, 0.316082 s, 3.4 GB/s
+➜  ~ s dd if=/dev/zero of=f1.img bs=1M count=16384 conv=fdatasync
+16384+0 records in
+16384+0 records out
+17179869184 bytes (17 GB, 16 GiB) copied, 4.44352 s, 3.9 GB/s
+  #+end_src
+  - 测试读硬盘速度: s dd if=/dev/nvme0n1 of=/dev/null bs=1M count=1024
+- 扫描磁盘
+  #+begin_src shell
+alias scandisk="eecho - - - > /sys/class/scsi_host/host0/scan;echo - - - > /sys/class/scsi_host/host1/scan;echo - - - > /sys/class/scsi_host/host2/scan;"
+  #+end_src
+- 备份还原分区表
+  #+begin_src shell
+#备份
+dd if=/dev/sda of=/data/dpt.img bs=1 count=64 skip=446
+hexdump -C /data/dpt.img
+scp /data/dpt.img 10.0.0.7:/data
+#破坏
+dd if=/dev/zero of=/dev/sda bs=1 count=64 seek=446
+hexdump -C -n 512 /dev/sda -v
+fdisk -l /dev/sda
+#还原
+ip a a 10.0.0.8/24 dev ens33
+ping 10.0.0.7
+scp 10.0.0.7:/data/dpt.img .
+dd if=dpt.img of=/dev/sda bs=1 seek=446
+  #+end_src
+- 查看磁盘类型:
+  #+begin_src shell
+➜  ~ lsblk -d -o NAME,ROTA
+NAME    ROTA
+nvme0n1    0
+  #+end_src
+** parted分区
+- 查看: parted /dev/sdb
+- 从1M到200M: parted /dev/sdb mkpart primary 1 200
+- 删除第1个分区: parted /dev/sdb rm 1
+- 清除分区信息: dd if=/dev/zero of=/dev/sdb bs=1 count=66 seek=446
+  64字节是分区信息,2字节是5a标记位
+- *同步分区*: partprobe
+  centos6
+  #+begin_src shell
+#新增分区用
+partx -a /dev/DEVICE
+partx -a /dev/DEVICE -f: force
+#删除分区用
+partx -d --nr M-N /dev/DEVICE
+#示例:
+partx -d --nr 6-8 /dev/sda
+  #+end_src
+** 文件系统
+- 查看: ls /lib/modules/`uname -r`/kernel/fs
+  lsblk -f
+- 修复: fsck.ext4
+  *一定不要在挂载状态下执行命令修复*
+- 只读挂载: mount -r LABEL=test /mnt/sdb2
+  - 查看: cat /proc/mounts
+  - *重新挂载*: mount -o remount.rw /mnt/sdb2
+  - *查看挂载点被哪个进程使用*: fuser -v 挂载点
+    - 全杀: fuser -km 挂载点
+- mount -U UUID
+  同 mount UUID=
+*** 挂载文件夹: mount -B /etc/ /mnt/etc/
+  - -B --bind 用mount查看
+  - *fstab挂载文件*
+    #+begin_src shell
+#/etc/fstab
+/etc/ /mnt/etc/ none bind 0 0
+    #+end_src
+*** 挂载文件
+  #+begin_src shell
+dd if=/dev/zero of=/disk.img bs=1M count=100
+mkfs.ext4 /disk.img
+blkid /disk.img
+mkdir /mnt/disk;mount /disk.img /mnt/disk
+  #+end_src
+  - *挂载文件系统自动分配loop设备*
+  - 查看loop设备: losetup -a
+  - fstab挂载文件
+    #+begin_src shell
+#/etc/fstab
+/disk.img /data/disk xfs defaults 0 0
+    #+end_src
+** swap
+- /proc/sys/vm/swappiness的值决定了当内存战胜达到一定百分比时,会启用swap分区的空间
+  *越高越倾向使用swap,可以设为0这样做并不会禁止对swap的使用,只是最大限度地降低了使用swap的可能性*
+*** 制作swap
+1. fdisk -l /dev/sdc
+   t: 选择类型 选择82
+2. mkswap /dev/sdc1
+3. fstab: UUID= swap swap defaults 0 0
+4. 查看: swapon -s
+5. 挂载: swapon -a
+6. 修改sway优先级
+   - 机械硬盘数字靠前的速度快,sdc1比sda5速度快
+   - 更改: 挂载选项: pri=10
+   - swapoff /dev/sdc1
+   - swapon -a
+7. 不分区制作swap
+   - dd if=/dev/zero of=/dev/sdc bs=1 count=66 seek=446
+     mbr磁盘可用这种方法清理分区
+   - mkswap /dev/sdc
+   - swapon /dev/sdc
+*** 文件制作swap
+1. dd if=/dev/zero of=/swapfile bs=1M count=1024
+2. mkswap /swapfile
+3. fstab: /swapfile swap swap defaults 0 0
+4. swapon -a
+** 光盘
+- 光盘制作iso: cp /dev/sr0 /data/centos8.iso
+  - mkisofs -r -o /root/etc.iso /etc
+    来自genisoimage包
+** lvm
+- lvcreate -n lv1 -l *100%vg* vg0
+- lvextend -l *+100%free* /dev/mapper/vg1-lv1
+  - s lvresize -L 30G /dev/mapper/vg1-lv1
+- lvextend *-r* -l +100%free /dev/mapper/vg1-lv1
+  - -r 既扩展空间又扩展文件系统
+- *同步文件系统*
+  - ext4: resize2fs /dev/vg/lv
+  - *btrfs*: s btrfs filesystem resize max /
+  - xfs: xfs_growfs /
+*** 缩减逻辑卷
+  *缩减有数据损坏的风险,建议先备份再缩减*
+  1. umount /dev/VG_NAME/LV_NAME
+  2. fsck -f /dev/VG_NAME/LV_NAME
+  3. resize2fs /dev/VG_NAME/LV_NAME #[mMgGtT]
+  4. lvreduce -L [-]#[mMgGtT] /dev/VG_NAME/LV_NAME
+  5. mount
+*** 跨主机迁移卷组(拆走硬盘,接到新电脑上)
+1. umount
+2. 禁用卷组: vgchange -a n vg0
+3. 导出卷组: vgexport vg0
+4. vgimport vg0
+5. 启用: vgchange -ay vg0
+6. mount
+*** 逻辑卷快照
+1. s lvcreate -n gentoo-snapshot -s -L 100M /dev/mapper/system-gentoo
+2. s lvconvert --merge /dev/mapper/system-gentoo--snapshot
+*** 更换硬盘的方法
+1. 移动PE到同卷组其它成员
+   pvmove /dev/sdb1
+2. vgreduce vg0 /dev/sdb1
+3. pvremove /dev/sdb1
+* 网络
+- 客户端随机使用端口,范围定义: /proc/sys/net/ipv4/ip_local_port_range
+- 查看程序占用的端口
+  1. ss -ntlp
+  2. lsof -i :22
+- 孤儿连接: 在发第二个分手包时,服务器崩溃,客户端处于孤儿连接状态
+  #+begin_src shell
+# 指定孤儿连接数目
+➜  ~ cat /proc/sys/net/ipv4/tcp_max_orphans
+65536
+# 指定孤儿连接生存时间
+➜  ~ cat /proc/sys/net/ipv4/tcp_fin_timeout
+60
+  #+end_src
+- 半连接
+  #+begin_src shell
+#半连接
+➜  ~ cat /proc/sys/net/ipv4/tcp_max_syn_backlog
+1024
+#全连接
+➜  ~ cat /proc/sys/net/core/somaxconn
+4096
+  #+end_src
+** ip
+*** addr
+- 增加1个ip地址
+  s ip address add 192.168.10.100 dev wlan1 label wlan1:2
+- 删除1个ip地址
+  s ip address del 192.168.10.100/32 dev wlan1
+*** route
+- 两个连接相同交换机的不同ip ping通
+  - s ip route add default dev wlan1
+  - 删除: s ip route del default dev wlan1 scope link
+- 删除默认路由: s ip route del default via 192.168.10.1
+- 添加默认路由: s ip route add default via 192.168.10.1
+*** 给回环网络加上地址
+#+begin_src shell
+➜  ~ s ip addr a 1.1.1.1/24 dev lo label lo:1
+➜  ~ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 brd 127.255.255.255 scope host lo
+       valid_lft forever preferred_lft forever
+    inet 1.1.1.1/24 scope global lo:1
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+➜  ~ ping 1.1.1.100
+PING 1.1.1.100 (1.1.1.100) 56(84) bytes of data.
+64 bytes from 1.1.1.100: icmp_seq=1 ttl=64 time=0.025 ms
+64 bytes from 1.1.1.100: icmp_seq=2 ttl=64 time=0.049 ms
+64 bytes from 1.1.1.100: icmp_seq=3 ttl=64 time=0.041 ms
+#+end_src
+*** ss
+- 查看监听: ss -ntl
+- 查看打开的所有端口: ss -nta
+- 判断端口号是否打开
+  - < /dev/tcp/127.0.0.1/2017
+  - ss -ntl |grep ":80\>"
+- 条件
+    #+begin_src shell
+    ➜  ~ ss -o state LISTENING '( dport = :2017 or sport = :2017 )'
+    Netid                Recv-Q                Send-Q                               Local Address:Port                                 Peer Address:Port                Process
+    tcp                  0                     4096                                             *:2017                                            *:*
+    #+end_src
+  - dport: 目标端口 sport: 源端口
+* 进程
+- 查看进程编号: pidof firefox
+  - prtstat `pidof X` 详细
+  - prtstat 1
+- 判断多线程: pstree -p花括号
+  - cat /proc/`pidof xfce4-panel`/status
+- 查看进程状态码: man ps
+  /CODES
+- 查看信号: man 7 signal
+  - trap -l
+- 创建管道文件: mkfifo /data/test.fifo
+** ps
+- auf 显示进程关系
+- k 排序
+  - ps ao pid,%cpu,%mem,cmd k -%cpu
+  - ps au k -%cpu
+  - ps au k %cpu
+** 优先级
+- 设置
+  #+begin_src shell
+s nice -n -10 ping baidu.com
+➜  ~ ps ao pid,cmd,nice |grep ping
+ 8959 sudo nice -n -10 ping baidu   0
+ 8960 ping baidu.com              -10
+  #+end_src
+- 修改
+  #+begin_src shell
+➜  ~ s renice -n -20 30221
+30221 (process ID) old priority 0, new priority -20
+➜  ~ ps ao pid,cmd,nice |grep firefox
+30221 /usr/lib64/firefox/firefox  -20
+  #+end_src
+- cpu的绑定: taskset --help
+** pgrep
+- pgrep -au f
+- 查看子进程: pgrep -aP PID
+- pgrep -at pts/1
+** mpstat,iostat dstat vmstat
+- 安装: vj sysstat dstat
+- mpstat 2 6
+  每2秒执行1次,6次后退出
+- vmstat 1
+** top,iotop,iftop
+- 排序: M(mem) P(cpu) T(累积占据CPU时长)
+- 1 s k
+** pmap
+查看程序占用的内存空间
+#+begin_src shell
+➜  ~ s pmap 1
+1:   init [3]
+000055e6aeb70000     12K r---- init
+000055e6aeb73000     28K r-x-- init
+000055e6aeb7a000      8K r---- init
+000055e6aeb7c000      4K r---- init
+000055e6aeb7d000      4K rw--- init
+000055e6afb2b000    132K rw---   [ anon ]
+00007f150ffff000     12K rw---   [ anon ]
+00007f1510002000    136K r---- libc.so.6
+00007f1510024000   1328K r-x-- libc.so.6
+00007f1510170000    332K r---- libc.so.6
+00007f15101c3000     16K r---- libc.so.6
+00007f15101c7000      8K rw--- libc.so.6
+00007f15101c9000     32K rw---   [ anon ]
+00007f15101e2000      8K rw---   [ anon ]
+00007f15101e4000      4K r---- ld-linux-x86-64.so.2
+00007f15101e5000    148K r-x-- ld-linux-x86-64.so.2
+00007f151020a000     40K r---- ld-linux-x86-64.so.2
+00007f1510215000      8K r---- ld-linux-x86-64.so.2
+00007f1510217000      8K rw--- ld-linux-x86-64.so.2
+00007ffd4573a000    132K rw---   [ stack ]
+00007ffd45779000     16K r----   [ anon ]
+00007ffd4577d000      8K r-x--   [ anon ]
+ffffffffff600000      4K r-x--   [ anon ]
+ total             2428K
+#+end_src
+** strace ltrace
+- 查看程序运行过程中的系统调用
+- 安装: vp strace
+- strace ls
+- ltrace ls
+  显示库(语言库)的调用
+** nload
+- nload wlan1 wlan0
+** glances
+- glances -s
+- glances -c IP
+** lsof(list open file)
+- lsof -i :PORT
+- lsof /dev/pts/2
+  - tty
+- lsof -p PID
+** 并行运行
+1. 方法1
+   #+begin_src shell
+cat all.sh
+fi.sh&
+f2.sh&
+f3.sh&
+   #+end_src
+2. 方法2
+   #+begin_src shell
+(f1.sh&);(f2.sh&);(f3.sh&);
+   #+end_src
+3. 方法3
+   #+begin_src shell
+f1.sh& f2.sh& f3.sh&
+   #+end_src
+** 计划任务
+- at
+  - at 14:45
+  - at -l
+    atq
+  - at -c 3
+  - at -d 3
+    atrm
+  - 白名单: /etc/at.allow
+    - 黑名单: /etc/at.deny
+* 内核参数优化
+1. 临时修改: sysctl -w parameter=VALUE
+2. ping: /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+3. 读取: s sysctl -p /etc/sysctl.d/foo.conf
+** 模块
+- 卸载: modprobe -r MODULE
+  rmmod
+- 加装: modprobe MODULE
+  - 加载根据文件路径: insmod 文件路径
+    - modinfo -n 模块
+    - *insmod不能解决信赖*
+    - *加载uas之前心须加载usb_storage,因为uas信赖usb_storage*
+    - *如果先加载uas会报错*
+** 编译内核
+1. 配置
+   1. cd /usr/src/linux
+   2. cp /boot/config-`uname -r` .config
+      *根据当前系统内核配置文件来配置内核*
+   3. 可选
+      1. 将CONFIG_SYSTEM_TRUSTED_KEYS的值设为空
+      2. 注释CONFIG_MODULE_SIG=y
+2. make menuconfig
+   1. General setup ---> Local version - append to kernel release
+      输入"-evil-0.0.1"
+3. 编译: make -j 12
+4. 安装
+   1. make modules_install
+   2. make install
+5. 卸载内核
+   1. 删除/usr/src/linux目录下不需要的内核源码
+   2. 删除/lib/modules目录下不需要的内核库文件
+   3. 删除/boot目录下启动的内核和内核映像文件
+6. 清理
+   1. make clean 会保留.config文件
+   2. make mrproper 会清理.config文件
+   3. make distclean 包含make mrproper,并清理patches以及编辑器备份文件
+* awk
+1. 变量
+   1. 分隔符: FS(field separator)
+   2. 记录分隔符: RS(record separator)
+   3. 字段数: NF(number of field)
+   4. 行号: NR(number of record)
+   5. FNR: 各文件分别计数
+   6. FILENAME: 当前文件名
+   7. ARGC: 命令行参数个数
+      awk '{print ARGC}' /etc/issue /etc/os-release
+2. 取出访问量最多的前几个ip地址
+   awk '{print $1}' nginx.access.log-20200428 |sort |uniq -c |sort -nr |head -3
+3. 取出分区利用率
+   1. \df |grep '^/dev' |awk -F'[[:space:]​]+|%' '{print $1,$5}'
+   2. \df |awk -F'[[:space:]​]+|%' '/^\/dev/{print $1,$5}'
+4. 取出ip地址
+   1. awk: ifconfig wlan0 |awk '/netmask/{print $2}'
+   2. ifconfig wlan0 |sed -rn '2s/^[^0-9]+([0-9.]+) .*$/\1/p'
+5. 连接数最多的3个ip
+   ss -nt |awk -F" +|:" '/^ESTAB/{print $6}' |sort |uniq -c |sort -nr |head -n3
+* ssh
+1. 选项
+   - -x 远程执行图形程序
+   - -t 多次连接到目标
+     - 格式: ssh -t IP -t IP -t IP
+       从第1个IP连接到第2个IP,再从第2个IP连接到第3个IP
+   - -o 临时修改配置
+     如: -o StrictHostChecking=no
+   - 在远程执行本地脚本
+     ssh IP bash < test2.sh
+2. 禁用首次用ssh时的询问: sed -i.bak '/StrictHostChecking/s/.*/StrictHostChecking no/' /etc/ssh/ssh_config
+3. ssh远程登录
+   1. ssh-keygen
+   2. ssh-copy-id NAME@IP
+   3. 添加口令: ssh-keygen -p
+   4. ssh代理(不用自己再输入私钥密码)
+      1. ssh-agent bash
+      2. ssh-add

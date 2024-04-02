@@ -1,0 +1,130 @@
+#+title: Shell高级
+
+* 格式
+1. 用双引号而不用单引
+2. for in
+   - for n in `seq 10`;do echo $n;done
+   - 文件
+     #+begin_src shell
+for n in `seq 10`
+do
+    echo $var
+done
+     #+end_src
+3. 在条件测试中使用变量必须加双引号
+* 重点
+1. bash开启脚本会开启子shell, sourch/.不会
+2. $* 和 $# 的区别
+   - $*: *不加引号等同于$@的作用,加上引号的作用是,接收所有参数为单个字符串*
+* 技巧
+1. seq 10
+2. 统计命令执行时长
+   - time for n in {1..10000};do char=`seq -s "evil520" 100`;echo ${#char} &> /dev/null;done
+     *bash中使用*
+3. 批量修改文件各
+   - for file_name in `ls *fin*jpg`;do mv $file_name `echo ${file_name//_finished/}`;done
+     - 删除文件中的_finished
+4. type/which
+5. 检测nginx服务是否运行
+   - wget --timeout=5 --tries=1 http -q -O /dev/null
+6. 判断不是数字
+   - if [ -n "`echo $input|sed 's/[0-9]//g'`" ]
+7. 开发内存检测脚本
+   free -m | awk 'NR==2 {print $NF}'
+* test
+- 文件,目录
+  - 文件类型
+    - -e: 是否存在
+      - -f: 文件
+      - -d: 目录
+  - 文件权限
+    - -r -w -x
+- string
+  - = 内容相同
+  - !=
+  - -z (zero) 长度等于零
+    - ! -z 长度不等于零
+  - -n (none zero)
+  - *[,=,!,] 之间必须要有空格*
+- 数值
+  - -eq -ne -gt -ge -lt -le
+  - ==/= != > >= < <=只能在(()) [[]]使用
+- 逻辑
+  - -a -o !
+  - && ||只能在(()) [[]]使用
+* 命令
+- 环境变量
+  set/declare:全局,局部
+  env/export:全局,环境
+- 只读变量
+  readonly
+- echo
+  - -n: 不换行输出
+  - -e: 解析字符串中特殊符号
+- eval: 执行多个命令
+  - eval ls;cd /tmp
+- exec: 不创建子进程,执行后续命令,且执行完毕后,自动exit
+- wc -L: 找出长度最长的一行
+- seq -s (指定分隔符)
+- find -mtime +7 | xargs rm -f
+  修改时间越过7天
+- read
+  - -p
+  - -t:超时
+- netstat -tunlp
+  - ss -tunlp
+* 特殊状态变量
+- $!: 获取上一次后台执行的程序PID
+- $$: 获取当前脚本的PID
+- $_: 获取上次命令的最后一个参数
+* shell子串
+- ${#valuable}
+- ${valuable:start}
+  - ${valuable:start:length}
+- ${valuable#word} (从变量开头删除最短匹配的word子串)
+  - ${valuable##word} (从变量开头删除最长匹配的word子串)
+  - %: 从后向前匹配
+- ${valuable/pattern/string}
+  - ${valuable//pattern/string} (全局替换)
+    *string后面没有/*
+* 变量的长度统计
+- echo ${PATH} | wc -L
+- expr length "${PATH}"
+- echo ${PATH} | awk '{print length($0)}'
+- echo ${#PATH}
+* shell扩展变量
+- result=${parameter:-word}
+  如果parameter变量的值为空,返回word字符串,赋值给result变量
+- result=${parameter:=word}
+  如果parameter变量的值为空,则word替代变量值,且返回其值
+- result=${parameter:?word}
+  如果parameter变量的值为空,word当作stderr输出
+- result=${parameter:+word}
+  如果parameter变量的值为空,什么都不做,不则返回 *word*
+* 子shell
+1. pstree, ps -ef --forest
+2. 创建子shell: (echo $ZSH_SUBSHELL)
+3. $ZSH_SUBSHELL
+   *检测是否在b子shell环境中,为0就是当前shell*
+* 数值计算
+- (())
+  - ((num=num*3)) (赋值)
+  - ehco $((num=num*3)) (打印)
+- let
+- expr
+  - expr 2 + 2
+  - expr 2 \* 2
+  - expr 5 \> 6
+  - expr string ":" ".*"
+  - 案例
+    - 判断是jpg文件
+      - if expr "$1" ":" ".*\.jpg" &> /dev/null
+- bc
+  - 生成1+2+到100
+    1. echo {1..100} | tr " " "+"
+    2. seq -s "+" 100
+  - seq -s "+" 100 | bc
+  - echo $((seq -s "+" 100))
+  - seq -s " + " 100 | xargs expr
+    *xargs将1个参数分割成多个参数*
+- echo $[num*3]

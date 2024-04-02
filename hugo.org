@@ -1,0 +1,13 @@
+#+title: Hugo
+
+* 安装
+- hugo new site hugo
+- hugo new post/firstpost.org
+- hugo server
+- .gitignore
+  #+begin_quote
+  ➜  blog git:(main) cat .gitignore
+hugo/public/
+  #+end_quote
+- git clone [[https://github.com/evil520/evil520.github.io.git]]
+- hugo

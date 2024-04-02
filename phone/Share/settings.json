@@ -1,0 +1,110 @@
+{
+    "window.zoomLevel": 1,
+    "editor.wordWrap": "on",
+    "editor.mouseWheelZoom": true,
+    "editor.multiCursorPaste": "full",
+
+    
+    "editor.fontSize": 20,
+    "python.pythonPath": "/bin/python",
+    "extensions.autoUpdate": false,
+
+
+
+    // LaTeX
+"latex-workshop.latex.autoBuild.run": "never",
+"latex-workshop.message.error.show": false,
+"latex-workshop.message.warning.show": false,
+
+
+"latex-workshop.latex.tools": [
+    {
+        "name": "xelatex",
+        "command": "xelatex",
+        "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-file-line-error",
+            "%DOCFILE%"
+        ]
+    },
+    {
+        "name": "pdflatex",
+        "command": "pdflatex",
+        "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-file-line-error",
+            "%DOCFILE%"
+        ]
+    },
+    {
+        "name": "bibtex",
+        "command": "bibtex",
+        "args": [
+            "%DOCFILE%"
+        ]
+    }
+],
+
+
+"latex-workshop.latex.recipes": [
+    {
+        "name": "xelatex",
+        "tools": [
+            "xelatex"
+        ],
+    },
+    {
+        "name": "pdflatex",
+        "tools": [
+            "pdflatex"
+        ]
+    },
+    {
+        "name": "xe->bib->xe->xe",
+        "tools": [
+            "xelatex",
+            "bibtex",
+            "xelatex",
+            "xelatex"
+        ]
+    },
+    {
+        "name": "pdf->bib->pdf->pdf",
+        "tools": [
+            "pdflatex",
+            "bibtex",
+            "pdflatex",
+            "pdflatex"
+        ]
+    }
+],
+
+
+"latex-workshop.view.pdf.external.viewer.args": [
+    "-forward-search",
+    "%TEX%",
+    "%LINE%",
+],
+
+
+"latex-workshop.view.pdf.external.synctex.args": [
+    "-forward-search",
+    "%TEX%",
+    "%LINE%",
+],
+
+
+"latex-workshop.view.pdf.viewer": "tab",
+"latex-workshop.view.pdf.internal.synctex.keybinding": "ctrl-click",
+
+
+"vim.insertModeKeyBindings": [
+        {
+            "before": ["j", "k"],
+            "after": ["<Esc>"]
+        },
+    ],
+    "editor.lineNumbers": "off",
+}

@@ -1,0 +1,21 @@
+IME
+sudo pacman -S fcitx5-im
+sudo pacman -S fcitx5-chinese-addons
+
+sudo pacman -S archlinuxcn-keyring 
+
+xfce
+sudo pacman -S xfce4-pulseaudio-plugin 
+sudo vim /etc/lightdm/lightdm.conf
+sudo groupadd -r autologin
+sudo usermod -G autologin f 
+
+latex
+sudo pacman -S texlive-core texlive-langchinese
+
+chromium proxy
+chromium --proxy-server="socks5://127.0.0.1:1089"
+
+grub
+sudo vim /etc/default/grub 
+sudo grub-mkconfig -o /boot/grub/grub.cfg

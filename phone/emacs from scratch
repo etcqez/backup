@@ -1,0 +1,37 @@
+M-num C-u num
+C-l redisplay
+M-a sentence beginning
+M-e sentence end
+M-< beginning
+M-> end
+C-x C-l is a disable command
+C-/ undo C-_ C-x u
+C-x C-b buffer list
+C-x b switch buffer
+%emacs fg
+C-h m show content(minor mode) of  major mode
+
+auto-fill
+auto-fill-mode auto line breaking
+C-x f set-fill-column
+M-q fill-paragraphy
+
+windows
+M-C-v scroll other frame
+C-x 4 C-f :vs
+
+frame
+C-x 5 2 create frame
+C-x 5 0 remove frame
+
+<esc>x3 get out of recusive editing level
+
+help char
+C-h c brief description of command
+C-h k
+C-h x describe function
+C-h f describe function
+C-h v describe variables
+C-h a search command
+C-h i package manual
+C-h r reading manual

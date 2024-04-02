@@ -1,0 +1,123 @@
+patch:
+#  "preset_keyboards/wubi_pinyin/import_preset": qwerty #预设36键布局的ID是qwerty0
+#  "reset_ascii_mode": false
+#  "preset_keyboards/qwerty/ascii_mode": 1
+  "style/color_scheme": steam
+  "style/candidate_padding": 50 
+  "style/candidate_text_size": 30 
+  "style/candidate_view_height": 80
+  "style/comment_height": 30 
+  "style/comment_on_top": false
+  "style/comment_text_size": 30
+  "style/horizontal": false
+  "style/horizontal_gap": 6
+    #"style/layout/max_length": 3
+    #"style/layout/max_entries": 3
+  "style/layout/position": right
+  "style/keyboard_height": 350
+  "style/keyboard_height_land": 300
+  "style/preview_height": 100
+  "style/preview_text_size": 90
+  "style/key_text_size": 30
+  "style/key_long_text_size": 20
+  "style/symbol_text_size": 20
+
+  "style/keyboards":
+    - .default
+    - default
+    - number
+    - symbols
+    - qwerty
+ 
+  "preset_keyboards/qwerty/ascii_mode": 1
+ 
+#  "style/candidate_view_height": 36
+  "style/round_corner": 15.0
+#  "style/label_text_size": 18
+#  "style/comment_height": 14
+  "preset_keys/Keyboard_defaultw":   #返回中文键盘
+      label: 英
+      select: .default
+      send: Eisu_toggle
+  "preset_keys/space":
+    functional: false
+    label: " "
+    repeatable: false  #关掉空格键重复
+    send: space
+
+ # "preset_keyboards/qwerty/keys/@31/click": VOICE_ASSIST #将原来的符号键替换为语音键
+
+# 空格
+  "preset_keys/space":
+#    repeatable: true
+    functional: false
+    preview: "空格" #把空格键的气泡提示设为空格
+    send: space
+
+  # 1、新建一个键盘布局xkey
+  "preset_keyboards/xkey": #布局ID
+    author: "xq" #作者
+    name: "数字+操作键" #方便自己辨识的名字
+    ascii_mode: 1 #默认进入英文状态
+    height: 44 #每行高度
+    width: 11 #按键默认宽度（取所有按键中用得较多的宽度值，接下来就可以少写一些width了）
+    keys: #按键排列
+      # 第一行
+      - { click: "#", long_click: cut }
+      - { click: "%", long_click: copy }
+      - { click: "@", long_click: paste }
+      - { click: "+", width: 13 }
+      - { click: 7, width: 18 }
+      - { click: 8, width: 18 }
+      - { click: 9, width: 18 }
+      # 第二行
+      - { click: Page_Up }
+      - { click: Up }
+      - { click: Page_Down }
+      - { click: "-", width: 13 }
+      - { click: 4, width: 18 }
+      - { click: 5, width: 18 }
+      - { click: 6, width: 18 }
+      # 第三行
+      - { click: Left }
+      - { click: Tab }
+      - { click: Right }
+      - { click: "×", width: 13 }
+      - { click: 1, width: 18 }
+      - { click: 2, width: 18 }
+      - { click: 3, width: 18 }
+      # 第四行
+      - { click: Home }
+      - { click: Down }
+      - { click: End }
+      - { click: "÷", width: 13 }
+      - { click: ",", width: 18 }
+      - { click: 0, width: 18 }
+      - { click: BackSpace, width: 18 }
+      # 第五行
+      - { click: Keyboard_default, long_click: Menu, width: 18 }
+      - { click: "±", width: 14.9 } #如果上下的按键没有严格对齐，可以微调宽度
+      - { click: "=", width: 13 }
+      - { click: space, width: 18 }
+      - { click: ., width: 18 }
+      - { click: Return, width: 18 }
+
+  # 2、要在主键盘中调用它，就得新建一个功能键，来开启这个ID为xkey的键盘
+  "preset_keys/Keyboard_xkey": #按键ID
+    label: 123 #按键标签
+    send: Eisu_toggle #执行切换键盘命令
+    select: xkey #选择xkey键盘
+
+  # 3、把这个切换键盘的功能键放到主键盘中（以预设26键键盘为例）
+  "preset_keyboards/qwerty/keys/@31/long_click": Keyboard_xkey #通过长按符号键来开启这个键盘
+
+  # 4、最后在style/keyboards中声明一下我们要用到xkey这个键盘
+  "style/keyboards":
+    - .default
+    - default
+    - number
+    - symbols
+    - xkey #style/keyboards不能只写xkey一个，其它用到的键盘要照原样抄过来，不然会出错
+
+#  "preset_keyboards/qwerty/keys/@33/swipe_left": Left
+#  "preset_keyboards/qwerty/keys/@33/swipe_right": Right

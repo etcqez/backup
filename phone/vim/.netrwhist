@@ -1,0 +1,9 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =7
+let g:netrw_dirhist_7='/home/f/Sync'
+let g:netrw_dirhist_6='/home/f/.emacs.d.bak/submodule/lsp-bridge'
+let g:netrw_dirhist_5='/home/f/.emacs.d/lisp'
+let g:netrw_dirhist_4='/home/f'
+let g:netrw_dirhist_3='/home/f/.emacs.d/lisp'
+let g:netrw_dirhist_2='/home/f/.emacs.d/auto-save-list'
+let g:netrw_dirhist_1='/home/f/.vim/plugged'

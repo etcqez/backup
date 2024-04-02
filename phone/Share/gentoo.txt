@@ -1,0 +1,147 @@
+echo XSESSION="Gnome" > /etc/env.d/90xsession
+ *     env-update && source /etc/profile
+
+1.挂载
+mkdir /mnt/gentoo
+mkdir /mnt/gentoo/home
+mkdir /mnt/gentoo/efi
+mount /dev/nvme0n1p2 /mnt/gentoo
+mount /dev/nvme0n1p3 /mnt/gentoo/home
+mount /dev/nvme0n1p1 /mnt/gentoo/efi
+lsblk
+
+2.解压stage3
+cd /mnt/gentoo
+wget http://mirrors.ustc.edu.cn/gentoo/releases/amd64/autobuilds/20211128T170532Z/stage3-amd64-systemd-20211128T170532Z.tar.xz
+tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner
+rm -rf stage3-*.tar.xz
+
+3.配置portage
+nano -w /mnt/gentoo/etc/portage/make.conf # [COMMON_FLAGS MAKEOPTS EMERGE_DEFAULT_OPTS GENTOO_MIRRORS]
+mkdir --parents /mnt/gentoo/etc/portage/repos.conf
+cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/gentoo.conf
+nano -w /mnt/gentoo/etc/portage/repos.conf/gentoo.conf
+
+4.复制DNS信息
+cp --dereference /etc/resolv.conf /mnt/gentoo/etc/
+cat /mnt/gentoo/etc/resolv.conf
+
+5.挂载必要的文件系统
+mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+[!]使用非Gentoo安装媒介时
+test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
+mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
+chmod 1777 /dev/shm
+
+6.进入新环境
+chroot /mnt/gentoo /bin/bash
+source /etc/profile
+export PS1="(chroot) ${PS1}"
+
+7.同步Gentoo ebuild数据库快照
+emerge-webrsync
+
+8.选择正确的配置文件[systemd]
+eselect profile list
+eselect profile set N
+
+9.更新@world集合
+emerge --ask --verbose --update --deep --newuse @world
+
+10.配置systemd
+systemd-machine-id-setup
+echo "Arch-Yahoo" > /etc/hostname
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+ln -sf ../usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+env-update && source /etc/profile
+
+cat > /etc/systemd/network/10-dhcp.network << "EOF"
+[Match]
+Name=enp5s0
+
+[Network]
+DHCP=yes
+EOF
+systemctl enable systemd-networkd.service
+systemctl preset-all
+
+11.配置locale
+cat > /etc/locale.gen << "EOF"
+en_US.UTF-8 UTF-8
+zh_CN.UTF-8 UTF-8
+EOF
+locale-gen
+eselect locale list
+eselect locale set N
+env-update && source /etc/profile && export PS1="(chroot) ${PS1}"
+
+12.配置内核
+emerge --autounmask gentoo-sources pciutils genkernel linux-firmware [更新配置etc-update]
+eselect kernel list
+eselect kernel set 1
+cd /usr/src/linux
+make menuconfig
+make -j7 && make modules_install -j7
+make install
+genkernel --install initramfs
+
+13.安装工具
+emerge net-misc/dhcpcd app-editors/vim dev-vcs/git app-admin/sudo app-portage/gentoolkit
+
+14.配置系统
+systemctl enable dhcpcd
+vim /etc/profile
+blkid
+vim /etc/fstab
+vim /etc/hosts
+vim /etc/issue
+vim /etc/security/passwdqc.conf # [密码策略]
+passwd
+useradd -m -s /bin/bash -G wheel link
+passwd link
+vim /etc/sudoers
+
+15.引导
+[Legacy]
+emerge sys-boot/grub:2
+grub-install /dev/sd?
+grub-mkconfig -o /boot/grub/grub.cfg
+[UEFI]
+echo 'GRUB_PLATFORMS="efi-64"' >> /etc/portage/make.conf
+emerge sys-boot/grub:2
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GENTOO
+grub-mkconfig -o /boot/grub/grub.cfg
+
+16.重启
+reboot
+
+------------------------------------------------Xorg------------------------------------------------
+
+1.修改profile并更新系统
+eselect profile list
+eselect profile set N
+USE="-harfbuzz" emerge freetype
+emerge --ask --verbose --update --deep --newuse @world
+
+2.安装驱动
+vim /etc/portage/make.conf # [INPUT_DEVICES VIDEO_CARDS](https://wiki.gentoo.org/wiki/Xorg/Guide)
+emerge xorg-drivers
+
+3.安装xorg
+emerge xorg-server
+
+4.安装字体
+emerge media-fonts/wqy-zenhei media-fonts/source-pro media-fonts/dejavu
+
+5.安装网络浏览器
+emerge firefox-bin
+
+6.安装窗口管理器和其他应用
+emerge bspwm sxhkd rofi polybar feh xsetroot alacritty neofetch alsa-utils fcitx-configtool fcitx-libpinyin
+
+7.启动xorg
+startx

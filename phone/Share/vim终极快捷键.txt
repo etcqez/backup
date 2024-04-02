@@ -1,0 +1,108 @@
+ctrl+a 加
+ctrl+x 减
+ctrl+e 移动画面
+ctrl+y 上
+ctrl+d 向下翻半页
+ctrl+u 上
+J 以下行成一行
+5J 以下5行变成一行
+. 重复本行的动作 eg: a#空格 .可以为其它行添加 "# "
+~(shift+`l) 大小写切换
+zf 折叠 zd、l 解开
+zfip 折叠一个断落
+10gg 10G 移动到10行
+v3w 选择3个单词
+v6w 选择6个内容(标点和单词)
+vip 选择一个断落(以空行结尾)
+vis 选择断落(以.?结尾)
+s 删除一个字符并插入
+{(whift+[) 逃过一个断落
+vi"(选中本行“”号里的内容) 光标可在本行任意位置vi( vi<  
+va" 包括“”也选中 
+vit(针对html标签)
+viw 选择一个单词 vaw 选多点点
+diw 删除一个单词
+:tab ball :tab ba 将档案展开成tab
+ctrl+6 切换档案(必须是vim *打开的)
+:b 数字
+:b 文件部分名字
+:bnext :bn(new tabe打开的无效) 切换档案
+:bprevious bp 前一个
+:blast bl 最后一个 bfirst bf
+:bdelete :bd 关闭
+:ls 查看打开的档案
+:help window 打开vim 内建手册
+vim -p 分页
+vim -o vim -O 水平，垂直视窗
+:wqa! 全部保存退出
+:垂直分屏
+:new 水平分屏
+gt gT 切换标签页
+:tabe 新增一个标签页
+P 上方复制
+:e 当前位置打开文件
+D 若光标在最前面，不会删除换行
+dG 删除所有
+= 代码格式化
+:set shiftwidth=4 设置缩进
+3>> 缩进3行
+>< 缩进
+r 替换一个字符 R 多个
+c 删除并插入
+dw 删除一个单词
+dj 删除当前行和下一行
+dk 当和上
+2dj 删除包括当前行的三行
+"ay yank到a寄存器
+"ap 取a的值
+:reg 所有寄存器
+p P 前一格
+yw yank一个单词
+ctrl+[ esc
+zz 
+"ap 取a的值
+:set nohlsearch
+不逃过自动换行 ghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglghgjgkglg
+v V 可视当前行
+ctrl+v 块模式 I 多光标
+0 ^ 开头
+w W 忽略标点符号 b B 向后
+e E
+/ ? * #(以游标所在字符) 搜索
+f F查找前面
+t(until) 查找前面一个字母 
+T(until) 查找后面一个字母 
+M 到屏幕中央
+zz 中央
+H 页面开头
+zt 开头
+L 页面结尾
+zb 结尾
+？ 从下往上查找
+ctrl+r 恢复撤消
+ctrl+f 翻页
+ctrl+b
+:r 读取并写入
+:echo expand("%") 查看文件位置
+:messages vim的输出信息
+:行号 co行号 复制
+:r !ls 读入ls命令的输出
+:echo $MYVIMRC	
+:set number 
+m+字母 标记
+'+字母 返回标记
+q+字母 录制宏
+q 结束录制
+次数+@+字母 使用宏
+:bn 切换文件
+vs 垂直分屏
+sp 水平
+set splitright 垂直分屏在右边
+set splitbelow 下边
+:vertical resize+数字 指定分屏宽度
+ctrl-w-> 加宽
+ctrl-w-数字-> 
+ctrl-w-> 减宽
+ctrl-w-w 切换
+ctrl-w-l 或 h 左右移动
+ctrl-w-H、J、K、L 移动分屏（ctrl+w松开）

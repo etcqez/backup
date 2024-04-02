@@ -1,0 +1,423 @@
+
+
+obtain 获得
+
+available 可获得的,有空的
+
+options available 可有的选择
+
+facilities available 可以利用的设施
+
+no avail 无用
+
+avail youself of an offer 接受一个offer
+
+opportunity 机会
+
+liberty 自由的,随意的
+
+avail themselves of facilities 使用设备
+
+pleasant 非常好的
+
+deserve 值得
+
+worthy person 值得尊敬的人
+
+enjoyable 有好处的
+
+compelling 有吸引力
+
+reputation 名声
+
+accusations 指责
+
+prime minister 首相
+
+remark 显著的
+
+programme 节目
+
+August slot 八月档
+
+slot machine 投币机
+
+episode 集,情节,插曲
+
+occupies a peak evening viewing slot
+
+占据一个顶峰晚间收视时段
+
+hole 洞
+
+dialed 拨号
+
+reliable 可靠的
+
+responsible 负责的
+
+trusted信任的
+
+leval-headed头脑冷静的
+
+sensible 理智的
+
+prevail 流行，占上风，获胜
+
+proposal 提议
+
+principle 原则
+
+influence 影响
+
+situation 情形
+
+contest 比赛
+
+dispute 争议
+
+rebels 叛军
+
+science 科学
+
+prevailing 一般的，普通的，盛行的prevalent
+
+prevailing view 一般的看法
+
+guity 有罪的
+
+condition 情形
+
+practice 做法
+
+belief 信仰
+
+increasingly 越来越
+
+prevalent mytus 流行的神话
+
+value 重视，定价
+
+appreciate 欣赏
+
+experts 专家
+
+jewellery 珠宝
+
+insurance 保险
+
+values 价值观
+
+share 享有
+
+valued 贵重的valuable
+
+make-up 化妆
+
+objects 物品
+
+valuation 估价
+
+judgment 判断
+
+independent 独立的
+
+value-added 增值的
+
+undervalue 低估，小看
+
+devalue 贬值
+
+tale 传说，谣言
+
+current 当前
+
+currency 货币
+
+evaluate 评价
+
+estimate 估计
+
+equivalent 等价的，等价物
+
+be equivalent to 等价于
+
+having force in law 有效力
+
+law 法律 legally 法律上
+
+valid passport 有效护照
+
+valid argument, comment, idea 合理的观点
+
+sensible reasoning 合理的推理
+
+to validate a contract 使合同生效
+
+claim 声称，申诉
+
+prove or confirm 证明或确认
+
+true or correct 真实或正确
+
+evidence 证据
+
+evaluated and validated 评价和确认
+
+assess 评估
+
+access 访问
+
+certain 某些，一定
+
+employ 使用，采用，雇佣
+
+unemployment 失业率
+
+employee 雇员
+
+interviewer 采访的发出者，面试的面试官
+
+interviewee 被采访的对象，被面试的人
+
+commit 委托，托付，送
+
+committee 被委托的机构，委员会
+
+exploit 剥削，充公利用，开发，开拓
+
+achieve 实现
+
+exploit resources 开发资源
+
+raw materials 原材料
+
+industry or commercial 工业或商业
+
+exploitation 剥削，利用，开发
+
+explore a place 探险某地
+
+explore an idea or suggestion 探讨某个观点或提议
+
+travel 旅游
+
+comment on it in detail 详细地点评
+
+explore an area 勘探
+
+explore oil 勘探石油
+
+explore minerals 勘探矿物质
+
+deploy 部署，调度
+
+military action 军事行动
+
+missiles 导弹
+
+deploy arguments or resources 有效的利用论据或资源
+
+complicate 使复杂化
+
+complicated 复杂的complex, perplex
+
+as a result of 由于
+
+complication 困难，并发症
+
+heart attack 心脏病
+
+stadium 体育场
+
+leisure 空闲
+
+mental 心理的
+
+emotional 情绪上的
+
+complexion 性质，特性，面色
+
+notion 观念
+
+bodily constitution 身体的构成
+
+sense 含义
+
+general nature 一般的本性
+
+resulting from 源自于
+
+dry, moist 干燥，潮湿
+
+humors 幽默，体液
+
+choler 胆汁
+
+specific 具体的
+
+color 颜色hue
+
+indicate temperament 指明性格
+
+rarely 很少
+
+duplex 二倍的，双重的
+
+duplicate 复制，使加倍replicate
+
+multiply 乘
+
+citizens 市民
+
+satisfy 满足
+
+multiple roles 多重身份
+
+multiple choices 多项选择
+
+multitude 群众，多数
+
+multitudes of premiums 大量的奖励
+
+vowels 元音
+
+lateral 边的，平行的
+
+bilateral 双边的
+
+bilateral relationship 双边关系
+
+multilateral 多边的，多国的
+
+multimedia 多媒体
+
+millionaire 百万富翁
+
+multimillionaire 大富豪
+
+multiplication 乘法
+
+multiplicity 多样性
+
+multiracial 多民族的multiethnic
+
+multivariate 多元的
+
+bend 弯曲
+
+reflect on 反映，反省
+
+self-reflection 自我反省
+
+reflective 沉思的
+
+sends back 送回去
+
+triple 三倍的
+
+double 两倍
+
+characterist 特征
+
+emotion 情绪
+
+remarkable 非凡的
+
+entertain people 娱乐人们
+
+the firework display 烟火表演
+
+comply with 遵循
+
+compliance 遵守
+
+imply 暗示，隐含，意味
+
+implication 暗示，含义
+
+profound implications 深刻的含义
+
+implicate 涉及，牵连，含有……的意思
+
+implicit 暗示的，含蓄的
+
+implicit bias 固有的偏见
+
+explicit 清楚的，明确的
+
+expllcit policy 明确的政策
+
+accurate 精准的
+
+replica 复制品， 酷似的人copy
+
+aria2c --enable-rpc --rpc-listen-all --disable-ipv6 --rpc-secret yourpassword
+
+grub-mkconfig -o /boot/grub/grub.cfg
+:%s/http/https/g
+sudo telinit 5
+-pect不是一个词根！-spec(t)才是！
+-spec(t)表示看见，拉丁文（specere=to see/to look）
+aspect n.方面(a-=ad-=to,at)
+circumspect a.慎重的
+conspectus n.概观；摘要；大纲
+expect v.期待(ex-=out)
+expectant a.期待的；怀孕的
+expectancy n.期待；可能性
+inspect v.查阅；检查(in-=into)
+inspection n.检查；视察
+inspector n.检查员；巡视员
+introspect v.内省(intro-=within)
+
+impose 强加的
+
+strain 压力 presure
+
+suffering n.痛苦
+
+imposing 令人难忘的 impressive
+
+restriction 限制
+
+deliberately adv.故意
+
+arrange for 为……作安排
+
+deposit = lay away 存款
+
+dispose 处理 安排
+
+full price 全价 pride 自豪
+
+an amount of ……一部分 amount 数量
+
+the amount of 总数
+
+get rid of something 消除某事
+
+phrase 断语 word group
+
+charges 费用
+
+expose 暴露，揭发
+
+uncover 揭开
+
+reveal（veil面罩，没有面罩，揭开）
+
+immoral 不道德的
+
+exposition 展览会
+
+rpm -ivh example.rpm 安装 example.rpm 包并在安装过程中显示正在安装的文件信息及安装进度
+
+rect = right、straight 正确、笔直
+correct 正确的 correction 正确 corrective 矫正的 incorrect错误的
+rectify vt.改正 rectangle矩形
+erect[ɪ'rekt]v. 竖立、直立e-表示“向外，向上”；之所以这里特别指“向上”的意思
+erection[ɪ'rekʃən]n. 建筑物；直立
+direct[dɪˈrekt]vt. 管理；指挥 di-与de-相同，都表示“加强语气”，目标就是要让事情保持正确，不正确的改成正确的 direct[dɪˈrekt]adj. 直接的
+director[daɪˈrektə]n. 主任，导演
+directory 目录
+indirect[ɪndɪ'rekt]adj. 间接的；迂回的；非直截了当的
